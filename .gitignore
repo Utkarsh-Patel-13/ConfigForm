@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Speckit
+.specify/
+specs/
+
+# Example Projects
+examples/
