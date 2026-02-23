@@ -17,8 +17,17 @@ function parentDir(fullPath: string, displayName: string): string {
 	return fullPath.slice(0, idx).replace(/[/\\]$/, "");
 }
 
-function RecentList({ onOpen, entries, loading, error, removeEntry, clearAll }: RecentListProps) {
-	const [inaccessibleAlert, setInaccessibleAlert] = useState<string | null>(null);
+function RecentList({
+	onOpen,
+	entries,
+	loading,
+	error,
+	removeEntry,
+	clearAll,
+}: RecentListProps) {
+	const [inaccessibleAlert, setInaccessibleAlert] = useState<string | null>(
+		null,
+	);
 
 	if (loading) {
 		return (
@@ -78,7 +87,9 @@ function RecentList({ onOpen, entries, loading, error, removeEntry, clearAll }: 
 								className="flex items-center gap-3 flex-1 min-w-0 text-left"
 								onClick={() => {
 									if (!entry.accessible) {
-										setInaccessibleAlert("This path no longer exists on your system");
+										setInaccessibleAlert(
+											"This path no longer exists on your system",
+										);
 										return;
 									}
 									onOpen(entry.path, entry.kind as "project" | "file");

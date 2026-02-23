@@ -12,7 +12,14 @@ interface StartPageProps {
 function StartPage({ onOpen }: StartPageProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [dragging, setDragging] = useState(false);
-	const { entries, loading, error: recentError, addEntry, removeEntry, clearAll } = useRecent();
+	const {
+		entries,
+		loading,
+		error: recentError,
+		addEntry,
+		removeEntry,
+		clearAll,
+	} = useRecent();
 
 	async function handleOpenProject() {
 		try {
@@ -61,14 +68,15 @@ function StartPage({ onOpen }: StartPageProps) {
 	return (
 		<main className="min-h-screen flex items-center justify-center p-6 overflow-y-auto">
 			<div className="w-full max-w-[520px] flex flex-col gap-8 my-auto">
-
 				{/* Branding */}
 				<div className="flex flex-col items-center gap-2 text-center select-none">
 					<div className="btn btn-primary btn-circle pointer-events-none mb-1">
 						<Settings size={20} />
 					</div>
 					<h1 className="text-xl font-bold">ConfigForm</h1>
-					<p className="text-sm text-base-content/50">Config editor for your projects</p>
+					<p className="text-sm text-base-content/50">
+						Config editor for your projects
+					</p>
 				</div>
 
 				{/* Actions */}
@@ -90,17 +98,29 @@ function StartPage({ onOpen }: StartPageProps) {
 					<button
 						type="button"
 						onClick={handleOpenFile}
-						onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+						onDragOver={(e) => {
+							e.preventDefault();
+							setDragging(true);
+						}}
 						onDragLeave={() => setDragging(false)}
-						onDrop={(e) => { e.preventDefault(); setDragging(false); }}
+						onDrop={(e) => {
+							e.preventDefault();
+							setDragging(false);
+						}}
 						className={`w-full flex flex-col items-center gap-4 border-2 border-dashed rounded-box py-14 transition-colors cursor-pointer ${
-							dragging ? "border-primary bg-primary/5" : "border-base-300 hover:border-primary hover:bg-base-200/60"
+							dragging
+								? "border-primary bg-primary/5"
+								: "border-base-300 hover:border-primary hover:bg-base-200/60"
 						}`}
 					>
 						<FileText size={28} className="text-base-content/30" />
 						<div className="text-center">
-							<p className="font-semibold text-base-content">Drop config file here</p>
-							<p className="text-xs text-base-content/40 font-mono uppercase mt-1">JSON · YAML · TOML</p>
+							<p className="font-semibold text-base-content">
+								Drop config file here
+							</p>
+							<p className="text-xs text-base-content/40 font-mono uppercase mt-1">
+								JSON · YAML · TOML
+							</p>
 						</div>
 					</button>
 
@@ -130,7 +150,6 @@ function StartPage({ onOpen }: StartPageProps) {
 				<p className="text-center text-[10px] text-base-content/30 font-mono">
 					ConfigForm · v0.1.0
 				</p>
-
 			</div>
 		</main>
 	);
