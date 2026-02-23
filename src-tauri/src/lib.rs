@@ -32,7 +32,36 @@ pub struct RecentStore {
     pub entries: Vec<RecentEntry>,
 }
 
-// --- Helper functions ---
+// --- File I/O helpers ---
+
+fn scan_dir(dir: &Path, patterns: &[String], results: &mut Vec<String>) {
+    const SKIP_DIRS: &[&str] = &["node_modules", "dist", "build", "target", "out"];
+
+    let entries = match fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let file_name = entry.file_name();
+        let name = file_name.to_string_lossy();
+
+        if path.is_dir() {
+            // Skip hidden directories (e.g. .git, .next, .cache) and known heavy dirs
+            if name.starts_with('.') || SKIP_DIRS.contains(&name.as_ref()) {
+                continue;
+            }
+            scan_dir(&path, patterns, results);
+        } else if path.is_file()
+            && patterns.iter().any(|p| p.as_str() == name.as_ref())
+        {
+            results.push(path.to_string_lossy().to_string());
+        }
+    }
+}
+
+// --- Recent entry helpers ---
 
 fn read_store(app: &tauri::AppHandle) -> RecentStore {
     let data_dir = match app.path().app_data_dir() {
@@ -170,7 +199,38 @@ async fn open_file_dialog(app: tauri::AppHandle) -> Result<Option<String>, Strin
         .map(|path| path.map(file_path_to_string))
 }
 
-// --- Existing command ---
+// --- File I/O commands ---
+
+#[tauri::command]
+async fn scan_project(project_path: String, patterns: Vec<String>) -> Result<Vec<String>, String> {
+    let root = Path::new(&project_path);
+    let mut results = Vec::new();
+    scan_dir(root, &patterns, &mut results);
+    Ok(results)
+}
+
+#[tauri::command]
+async fn read_file(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn write_file(path: String, content: String) -> Result<(), String> {
+    let target = Path::new(&path);
+    let parent = target.parent().ok_or_else(|| "invalid path: no parent directory".to_string())?;
+    let tmp_name = format!(
+        ".{}.tmp",
+        target
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("file")
+    );
+    let tmp_path = parent.join(tmp_name);
+    fs::write(&tmp_path, &content).map_err(|e| e.to_string())?;
+    fs::rename(&tmp_path, target).map_err(|e| e.to_string())
+}
+
+// --- Misc commands ---
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -191,6 +251,9 @@ pub fn run() {
             remove_recent_entry,
             open_folder_dialog,
             open_file_dialog,
+            scan_project,
+            read_file,
+            write_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

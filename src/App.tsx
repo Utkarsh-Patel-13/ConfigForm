@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import EditorPage from "./pages/EditorPage";
 import StartPage from "./pages/StartPage";
 
 type View =
@@ -16,16 +17,10 @@ function App() {
 					onOpen={(path, kind) => setView({ screen: "editing", path, kind })}
 				/>
 			) : (
-				<div className="p-4">
-					<button
-						type="button"
-						className="btn btn-ghost btn-sm"
-						onClick={() => setView({ screen: "start" })}
-					>
-						← Close Project
-					</button>
-					<div className="mt-4">Editing: {view.path}</div>
-				</div>
+				<EditorPage
+					projectPath={view.path}
+					onClose={() => setView({ screen: "start" })}
+				/>
 			)}
 		</>
 	);
