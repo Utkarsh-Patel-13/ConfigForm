@@ -8,6 +8,7 @@ use tokio::sync::oneshot;
 // --- Data structures ---
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RecentEntry {
     pub path: String,
     pub display_name: String,
@@ -16,6 +17,7 @@ pub struct RecentEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RecentEntryWithStatus {
     pub path: String,
     pub display_name: String,

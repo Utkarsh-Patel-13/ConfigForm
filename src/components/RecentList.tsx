@@ -1,9 +1,14 @@
 import { FileText, FolderOpen, X } from "lucide-react";
 import { useState } from "react";
-import { useRecent } from "../hooks/useRecent";
+import type { RecentEntryWithStatus } from "../types/recent";
 
 interface RecentListProps {
 	onOpen: (path: string, kind: "project" | "file") => void;
+	entries: RecentEntryWithStatus[];
+	loading: boolean;
+	error: string | null;
+	removeEntry: (path: string) => Promise<void>;
+	clearAll: () => Promise<void>;
 }
 
 function parentDir(fullPath: string, displayName: string): string {
@@ -12,8 +17,7 @@ function parentDir(fullPath: string, displayName: string): string {
 	return fullPath.slice(0, idx).replace(/[/\\]$/, "");
 }
 
-function RecentList({ onOpen }: RecentListProps) {
-	const { entries, loading, error, removeEntry, clearAll } = useRecent();
+function RecentList({ onOpen, entries, loading, error, removeEntry, clearAll }: RecentListProps) {
 	const [inaccessibleAlert, setInaccessibleAlert] = useState<string | null>(null);
 
 	if (loading) {

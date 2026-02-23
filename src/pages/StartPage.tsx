@@ -1,8 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { FileText, FolderOpen, Settings } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RecentList from "../components/RecentList";
-import type { RecentEntryWithStatus } from "../types/recent";
+import { useRecent } from "../hooks/useRecent";
 
 interface StartPageProps {
 	onOpen: (path: string, kind: "project" | "file") => void;
@@ -11,15 +12,13 @@ interface StartPageProps {
 function StartPage({ onOpen }: StartPageProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [dragging, setDragging] = useState(false);
+	const { entries, loading, error: recentError, addEntry, removeEntry, clearAll } = useRecent();
 
 	async function handleOpenProject() {
 		try {
 			const path = await invoke<string | null>("open_folder_dialog");
 			if (path !== null) {
-				await invoke<RecentEntryWithStatus[]>("add_recent_entry", {
-					path,
-					kind: "project",
-				});
+				await addEntry(path, "project");
 				onOpen(path, "project");
 			}
 		} catch (err) {
@@ -31,16 +30,33 @@ function StartPage({ onOpen }: StartPageProps) {
 		try {
 			const path = await invoke<string | null>("open_file_dialog");
 			if (path !== null) {
-				await invoke<RecentEntryWithStatus[]>("add_recent_entry", {
-					path,
-					kind: "file",
-				});
+				await addEntry(path, "file");
 				onOpen(path, "file");
 			}
 		} catch (err) {
 			setError(String(err));
 		}
 	}
+
+	useEffect(() => {
+		let unlisten: (() => void) | null = null;
+		getCurrentWebview()
+			.onDragDropEvent((event) => {
+				if (event.payload.type === "drop") {
+					setDragging(false);
+					const path = event.payload.paths[0];
+					if (path) {
+						addEntry(path, "file")
+							.then(() => onOpen(path, "file"))
+							.catch((err) => setError(String(err)));
+					}
+				}
+			})
+			.then((fn) => {
+				unlisten = fn;
+			});
+		return () => unlisten?.();
+	}, [addEntry, onOpen]);
 
 	return (
 		<main className="min-h-screen flex items-center justify-center p-6 overflow-y-auto">
@@ -76,6 +92,7 @@ function StartPage({ onOpen }: StartPageProps) {
 						onClick={handleOpenFile}
 						onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
 						onDragLeave={() => setDragging(false)}
+						onDrop={(e) => { e.preventDefault(); setDragging(false); }}
 						className={`w-full flex flex-col items-center gap-4 border-2 border-dashed rounded-box py-14 transition-colors cursor-pointer ${
 							dragging ? "border-primary bg-primary/5" : "border-base-300 hover:border-primary hover:bg-base-200/60"
 						}`}
@@ -100,7 +117,14 @@ function StartPage({ onOpen }: StartPageProps) {
 				</div>
 
 				{/* Recent */}
-				<RecentList onOpen={onOpen} />
+				<RecentList
+					onOpen={onOpen}
+					entries={entries}
+					loading={loading}
+					error={recentError}
+					removeEntry={removeEntry}
+					clearAll={clearAll}
+				/>
 
 				{/* Footer */}
 				<p className="text-center text-[10px] text-base-content/30 font-mono">
