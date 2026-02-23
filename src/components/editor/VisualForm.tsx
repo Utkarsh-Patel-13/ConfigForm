@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { getPath } from "../../lib/parser";
 import { useMemo, useState } from "react";
 import type { ConfigTypeDefinition, FieldType } from "../../registry/types";
 import ArrayField from "../fields/ArrayField";
@@ -314,7 +315,7 @@ export default function VisualForm({
 								key={field.key}
 								field={field}
 								value={
-									values[field.key] ?? unknownFields[field.key.split(".")[0]]
+									values[field.key] ?? getPath(unknownFields, field.key)
 								}
 								onChange={onFieldChange}
 								error={errors[field.key]}

@@ -103,7 +103,7 @@ export default function ArrayField({
 	error,
 	description,
 }: Props) {
-	const items = value ?? [];
+	const items = Array.isArray(value) ? value : [];
 
 	// Stable IDs for list items so React keys don't depend on index
 	const stableIdsRef = useRef<string[]>([]);

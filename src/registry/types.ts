@@ -8,7 +8,7 @@ export type FieldType =
 	| "record"
 	| "secret";
 
-export type ConfigFormat = "json" | "jsonc" | "env";
+export type ConfigFormat = "json" | "jsonc" | "env" | "ini" | "toml" | "yaml";
 
 export interface ValidationRule {
 	rule: "required" | "minLength" | "maxLength" | "pattern" | "min" | "max";
